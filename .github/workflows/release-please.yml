@@ -1,0 +1,97 @@
+---
+name: release-please
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: release-please-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+
+  move-major-tag:
+    name: Move floating major/minor tags
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Move tags to point at the new release
+        env:
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+
+          MAJOR="${TAG%%.*}"
+          MINOR="${TAG%.*}"
+
+          git tag -fa "$MAJOR" -m "Release $TAG" "${TAG}^{}"
+          git tag -fa "$MINOR" -m "Release $TAG" "${TAG}^{}"
+
+          git push origin "refs/tags/$MAJOR" "refs/tags/$MINOR" --force
+
+  # release-type "node" bumps package.json/package-lock.json's version as
+  # part of the release commit itself, so publishing just needs to check out
+  # the tag and build/publish as-is -- no separate version-computation step
+  # like the old cd_publish.yml had (which derived its own
+  # major.minor.run_number scheme independent of git tags, since nothing was
+  # setting a real semantic version at the time).
+  publish:
+    name: Publish to GitHub Packages
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Configure npm authentication
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to GitHub Packages
+        run: npm publish --registry=https://npm.pkg.github.com/
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
