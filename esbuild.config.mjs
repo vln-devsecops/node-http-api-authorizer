@@ -22,7 +22,7 @@ rmSync(resolve(__dirname, 'dist'), { recursive: true, force: true })
 await esbuild.build({
   bundle: true,
   platform: 'node',
-  target: 'node22',
+  target: 'node24',
   format: 'cjs',
   sourcemap: true,
   minify: false,

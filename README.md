@@ -2,12 +2,12 @@
 
 A reusable AWS API Gateway v2 (HTTP API) Lambda `REQUEST` authorizer, published as `@vln-devsecops/http-api-authorizer-lambda`.
 
-It enforces one thing unconditionally, and one thing optionally:
+It's a small, growing set of independent authorization checks that can be combined as needed, rather than a fixed single-purpose authorizer. Today it supports:
 
-1. **Origin verification (always):** rejects any request whose `X-Origin-Verify` header doesn't match `ORIGIN_VERIFY_SECRET`. Intended to be paired with a CDN (e.g. CloudFront) that injects this header as an origin custom header, so the API only accepts traffic that actually transited the CDN — direct calls to the API's own endpoint are rejected.
-2. **JWT verification (opt-in via `REQUIRE_JWT=true`):** additionally verifies the `Authorization: Bearer <token>` header as a JWT against a caller-supplied issuer's JWKS (via [`jose`](https://github.com/panva/jose)), checking `iss`/`aud`, and forwards the string-valued claims named in `JWT_FORWARD_CLAIMS` into the authorizer's `context` (readable downstream via `event.requestContext.authorizer.lambda`).
+1. **Origin verification (always on):** rejects any request whose `X-Origin-Verify` header doesn't match `ORIGIN_VERIFY_SECRET`. Intended to be paired with a CDN (e.g. CloudFront) that injects this header as an origin custom header, so the API only accepts traffic that actually transited the CDN — direct calls to the API's own endpoint are rejected.
+2. **JWT verification (opt-in via `REQUIRE_JWT=true`):** additionally verifies the `Authorization: Bearer <token>` header as a JWT against a caller-supplied issuer's JWKS (via [`jose`](https://github.com/panva/jose)), checking `iss`/`aud`, and forwards the string-valued claims named in `JWT_FORWARD_CLAIMS` into the authorizer's `context` (readable downstream via `event.requestContext.authorizer.lambda`). Provider-agnostic — works against any standards-compliant OIDC issuer (Cognito, Auth0, etc.), not just one identity provider.
 
-The JWT verification is provider-agnostic — it works against any standards-compliant OIDC issuer (Cognito, Auth0, etc.), not just one identity provider.
+More checks (e.g. API keys) are expected to land here over time, selectable independently and usable in combination — this isn't meant to be "the origin+JWT authorizer" permanently, just what it supports so far.
 
 ## Environment variables
 
