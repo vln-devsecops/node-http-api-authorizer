@@ -1,0 +1,40 @@
+{
+  "name": "@vln-devsecops/http-api-authorizer-lambda",
+  "license": "Apache-2.0",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Reusable API Gateway v2 Lambda REQUEST authorizer: verifies a CloudFront origin-verify secret header, and optionally a JWT (via jose) against a caller-supplied issuer/audience, forwarding selected claims into the authorizer context.",
+  "files": [
+    "dist/"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && node esbuild.config.mjs",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "jose": "^5.9.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/aws-lambda": "^8.10.146",
+    "@types/node": "^24.13.3",
+    "@vitest/coverage-v8": "^3.1.1",
+    "esbuild": "^0.25.12",
+    "eslint": "^10.7.0",
+    "globals": "^17.7.0",
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.24.1",
+    "vitest": "^3.1.1"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true
+  }
+}
