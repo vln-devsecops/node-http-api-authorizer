@@ -14,6 +14,16 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    groups:
+      # vitest and @vitest/coverage-v8 must stay on the same major version --
+      # coverage-v8 v4 requires vitest v4, so a lone bump of either one
+      # breaks the build (see #8: coverage-v8 alone went 3.2.7 -> 4.1.11
+      # while vitest stayed at 3.2.7). Grouping forces Dependabot to propose
+      # both together in one PR instead of two independent ones.
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
     labels:
       - dependencies
       - npm
