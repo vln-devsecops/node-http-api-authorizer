@@ -20,7 +20,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "jose": "^6.2.9"
+    "jose": "^6.2.10"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
