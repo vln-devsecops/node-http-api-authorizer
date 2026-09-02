@@ -1,7 +1,7 @@
 {
   "name": "@vln-devsecops/http-api-authorizer-lambda",
   "license": "Apache-2.0",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "Reusable API Gateway v2 Lambda REQUEST authorizer: verifies a CloudFront origin-verify secret header, and optionally a JWT (via jose) against a caller-supplied issuer/audience, forwarding selected claims into the authorizer context.",
   "files": [
@@ -31,7 +31,7 @@
     "eslint": "^10.7.0",
     "globals": "^17.7.0",
     "typescript": "~5.7.2",
-    "typescript-eslint": "^8.68.0",
+    "typescript-eslint": "^8.24.1",
     "vitest": "^3.1.1"
   },
   "allowScripts": {
