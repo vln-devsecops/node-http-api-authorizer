@@ -16,7 +16,8 @@ More checks (e.g. API keys) are expected to land here over time, selectable inde
 | `ORIGIN_VERIFY_SECRET` | always | Shared secret expected in the `X-Origin-Verify` request header. |
 | `REQUIRE_JWT` | no | Set to `"true"` to also require and verify a bearer JWT. Defaults to origin-check-only. |
 | `JWT_ISSUER_URL` | when `REQUIRE_JWT=true` | The token issuer's base URL; JWKS is fetched from `<issuer>/.well-known/jwks.json`. |
-| `JWT_AUDIENCE` | when `REQUIRE_JWT=true` | Expected `aud` claim. |
+| `JWT_AUDIENCE` | no | Expected `aud` claim, checked when set. Of limited use against a Cognito-issued access token, which can only ever set `aud` to its own app client ID. |
+| `JWT_RESOURCE` | no | Expected custom `resource` claim, checked when set -- independent of `JWT_AUDIENCE`, for distinguishing which downstream API a token is meant for when `aud` can't (e.g. against Cognito). |
 | `JWT_FORWARD_CLAIMS` | when `REQUIRE_JWT=true` | Comma-separated list of claim names to copy (as strings) into the authorizer context. |
 
 ## Consuming this package

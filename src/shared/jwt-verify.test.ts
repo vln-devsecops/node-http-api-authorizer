@@ -122,6 +122,121 @@ describe('verifyJwt', () => {
     ).rejects.toThrow(JwtVerificationError)
   })
 
+  it('accepts a token whose resource claim matches, alongside audience', async () => {
+    const { privateKey, publicKey } = await generateKeyPair('RS256')
+    const jwk = { ...(await exportJWK(publicKey)), kid: 'test-key', alg: 'RS256', use: 'sig' }
+    const started = await startJwksServer({ keys: [jwk] })
+    server = started.server
+
+    const token = await new SignJWT({ resource: 'admin-api' })
+      .setProtectedHeader({ alg: 'RS256', kid: 'test-key' })
+      .setIssuer(started.issuerUrl)
+      .setAudience(AUDIENCE)
+      .setExpirationTime('5m')
+      .sign(privateKey)
+
+    const context = await verifyJwt(token, {
+      issuerUrl: started.issuerUrl,
+      audience: AUDIENCE,
+      resource: 'admin-api',
+      forwardClaims: [],
+    })
+
+    expect(context).toEqual({})
+  })
+
+  it('throws JwtVerificationError when the resource claim does not match', async () => {
+    const { privateKey, publicKey } = await generateKeyPair('RS256')
+    const jwk = { ...(await exportJWK(publicKey)), kid: 'test-key', alg: 'RS256', use: 'sig' }
+    const started = await startJwksServer({ keys: [jwk] })
+    server = started.server
+
+    const token = await new SignJWT({ resource: 'some-other-api' })
+      .setProtectedHeader({ alg: 'RS256', kid: 'test-key' })
+      .setIssuer(started.issuerUrl)
+      .setAudience(AUDIENCE)
+      .setExpirationTime('5m')
+      .sign(privateKey)
+
+    await expect(
+      verifyJwt(token, {
+        issuerUrl: started.issuerUrl,
+        audience: AUDIENCE,
+        resource: 'admin-api',
+        forwardClaims: [],
+      }),
+    ).rejects.toThrow(JwtVerificationError)
+  })
+
+  it('throws JwtVerificationError when a resource is required but the token has none at all', async () => {
+    const { privateKey, publicKey } = await generateKeyPair('RS256')
+    const jwk = { ...(await exportJWK(publicKey)), kid: 'test-key', alg: 'RS256', use: 'sig' }
+    const started = await startJwksServer({ keys: [jwk] })
+    server = started.server
+
+    const token = await new SignJWT({})
+      .setProtectedHeader({ alg: 'RS256', kid: 'test-key' })
+      .setIssuer(started.issuerUrl)
+      .setAudience(AUDIENCE)
+      .setExpirationTime('5m')
+      .sign(privateKey)
+
+    await expect(
+      verifyJwt(token, {
+        issuerUrl: started.issuerUrl,
+        audience: AUDIENCE,
+        resource: 'admin-api',
+        forwardClaims: [],
+      }),
+    ).rejects.toThrow(JwtVerificationError)
+  })
+
+  it('skips the resource check entirely when no resource is expected', async () => {
+    const { privateKey, publicKey } = await generateKeyPair('RS256')
+    const jwk = { ...(await exportJWK(publicKey)), kid: 'test-key', alg: 'RS256', use: 'sig' }
+    const started = await startJwksServer({ keys: [jwk] })
+    server = started.server
+
+    const token = await new SignJWT({})
+      .setProtectedHeader({ alg: 'RS256', kid: 'test-key' })
+      .setIssuer(started.issuerUrl)
+      .setAudience(AUDIENCE)
+      .setExpirationTime('5m')
+      .sign(privateKey)
+
+    const context = await verifyJwt(token, {
+      issuerUrl: started.issuerUrl,
+      audience: AUDIENCE,
+      forwardClaims: [],
+    })
+
+    expect(context).toEqual({})
+  })
+
+  it('verifies without an audience check when none is given, using resource alone', async () => {
+    const { privateKey, publicKey } = await generateKeyPair('RS256')
+    const jwk = { ...(await exportJWK(publicKey)), kid: 'test-key', alg: 'RS256', use: 'sig' }
+    const started = await startJwksServer({ keys: [jwk] })
+    server = started.server
+
+    // A Cognito access token's `aud` can only ever be the app client ID
+    // (node-vlinder-auth#142) -- callers relying purely on `resource` for
+    // authorization must not fail just because no audience was supplied.
+    const token = await new SignJWT({ resource: 'admin-api' })
+      .setProtectedHeader({ alg: 'RS256', kid: 'test-key' })
+      .setIssuer(started.issuerUrl)
+      .setExpirationTime('5m')
+      .sign(privateKey)
+
+    const context = await verifyJwt(token, {
+      issuerUrl: started.issuerUrl,
+      resource: 'admin-api',
+      forwardClaims: [],
+    })
+
+    expect(context).toEqual({})
+  })
+
   it('throws JwtVerificationError for a token signed by an unknown key', async () => {
     const { publicKey } = await generateKeyPair('RS256')
     const jwk = { ...(await exportJWK(publicKey)), kid: 'test-key', alg: 'RS256', use: 'sig' }

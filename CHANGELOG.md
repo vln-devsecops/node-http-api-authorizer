@@ -2,7 +2,6 @@
 
 ## 1.1.0 (2026-09-02)
 
-
 ### Features
 
 * adopt release-please for versioning and releases ([fae1ce0](https://github.com/vln-devsecops/node-http-api-authorizer/commit/fae1ce0c3e34cc21f73047114e94c2973eaea601))
