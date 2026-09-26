@@ -29,7 +29,12 @@ function unauthorized(): AuthorizerResult {
  * forwards the claims named in JWT_FORWARD_CLAIMS into the authorizer
  * context, so a downstream integration Lambda can read
  * event.requestContext.authorizer.lambda.<claim> the same way it would read
- * a native JWT authorizer's claims.
+ * a native JWT authorizer's claims. JWT_AUDIENCE and JWT_RESOURCE are both
+ * optional and independent: JWT_AUDIENCE checks the standard `aud` claim
+ * (of limited use against a Cognito-issued access token, which can only
+ * ever set `aud` to its own app client ID -- see node-vlinder-auth#142);
+ * JWT_RESOURCE checks a custom `resource` claim, for distinguishing which
+ * downstream API a token is meant for when `aud` can't.
  */
 export async function handler(
   event: APIGatewayRequestAuthorizerEventV2,
@@ -51,7 +56,8 @@ export async function handler(
   try {
     const context = await verifyJwt(token, {
       issuerUrl: requireEnv('JWT_ISSUER_URL'),
-      audience: requireEnv('JWT_AUDIENCE'),
+      audience: process.env['JWT_AUDIENCE'],
+      resource: process.env['JWT_RESOURCE'],
       forwardClaims: requireEnv('JWT_FORWARD_CLAIMS').split(',').filter(Boolean),
     })
     return { isAuthorized: true, context }

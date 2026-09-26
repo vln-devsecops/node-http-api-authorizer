@@ -88,6 +88,20 @@ describe('handler', () => {
       })
     })
 
+    it('forwards JWT_RESOURCE to verifyJwt when set, distinct from audience', async () => {
+      process.env.JWT_RESOURCE = 'admin-api'
+      verifyJwtMock.mockResolvedValue({})
+
+      await handler(event({ 'x-origin-verify': ORIGIN_SECRET, authorization: 'Bearer a.b.c' }))
+
+      expect(verifyJwtMock).toHaveBeenCalledWith('a.b.c', {
+        issuerUrl: 'https://issuer.example.com',
+        audience: 'client-id',
+        resource: 'admin-api',
+        forwardClaims: ['tenantId', 'permissions'],
+      })
+    })
+
     it('rejects when JWT verification fails', async () => {
       verifyJwtMock.mockRejectedValue(new JwtVerificationError('bad token'))
 
