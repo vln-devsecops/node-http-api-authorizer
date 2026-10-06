@@ -23,7 +23,7 @@
     "jose": "^6.2.12"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.163",
+    "@types/aws-lambda": "^8.10.164",
     "@types/node": "^26.6.2",
     "@vitest/coverage-v8": "^5.0.2",
     "esbuild": "^0.28.2",
