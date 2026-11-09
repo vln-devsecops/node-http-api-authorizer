@@ -20,7 +20,7 @@
     "lint": "oxlint ."
   },
   "dependencies": {
-    "jose": "^6.2.14"
+    "jose": "^6.2.15"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.164",
